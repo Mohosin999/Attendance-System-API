@@ -10,8 +10,32 @@
   </head>
   <body>
     <div class="container-fluid" id="root">
-      <h1>Change The Background Color By Clicking The Following Button</h1>
-      <button class="btn btn-warning" id="change-btn">Change Color</button>
+      <h1 class="text-center fs-2 fw-bold">
+        Change The Background Color By Clicking The Following Button
+      </h1>
+
+      <div>
+        <input
+          type="text"
+          class="btn btn-light input-sm py-1 px-1"
+          value="#000000"
+          id="output"
+        />
+        <button
+          class="btn btn-dark btn-outline-warning"
+          id="copy-btn"
+          title="copy to clipboard"
+        >
+          Copy
+        </button>
+      </div>
+
+      <button
+        class="btn btn-warning py-2 px-5 mt-3 text-dark fs-5 fw-bold"
+        id="change-btn"
+      >
+        Change Color
+      </button>
     </div>
   </body>
 </html>
