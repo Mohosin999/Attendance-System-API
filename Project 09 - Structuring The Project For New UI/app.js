@@ -67,6 +67,8 @@ function handleColorModeHexInp(e) {
     if (isValidHex(hexColor)) {
       const color = hexToDecimalColors(hexColor);
       updateColorCodeToDom(color);
+    } else if (hexColor.length > 6) {
+      alert("Invalid Color Code");
     }
   }
 }
@@ -135,6 +137,11 @@ function generateToastMessage(msg) {
   });
 
   document.body.appendChild(toastContainer);
+
+  // Toast message automatically delete after 5 second
+  setTimeout(function () {
+    toastContainer.style.display = "none";
+  }, 5000);
 }
 
 /**
