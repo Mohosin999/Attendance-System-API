@@ -5,11 +5,17 @@
  */
 
 // Globals
-let div = null;
+let toastContainer = null;
+const defaultColor = {
+  red: 221,
+  green: 222,
+  blue: 238,
+};
 
 // onload handler
 window.onload = () => {
   main();
+  updateColorCodeToDom(defaultColor);
 };
 
 // main function
@@ -18,12 +24,11 @@ function main() {
   const generateRandomColorBtn = document.getElementById(
     "generate-random-color"
   );
-  // const root = document.getElementById("root");
-  // const output = document.getElementById("output");
-  // const output2 = document.getElementById("output2");
-  // const changeBtn = document.getElementById("change-btn");
-  // const copyBtn = document.getElementById("copy-btn");
-  // const copyBtn2 = document.getElementById("copy-btn2");
+  const colorModeHexInp = document.getElementById("input-hex");
+  const colorSliderRed = document.getElementById("color-slider-red");
+  const colorSliderGreen = document.getElementById("color-slider-green");
+  const colorSliderBlue = document.getElementById("color-slider-blue");
+  const copyToClipboardBtn = document.getElementById("copy-to-clipboard");
 
   // event listeners
   generateRandomColorBtn.addEventListener(
@@ -31,47 +36,81 @@ function main() {
     handleGenerateRandomColorBtn
   );
 
-  // copy button event listener & handler
-  // copyBtn.addEventListener("click", function () {
-  //   navigator.clipboard.writeText(`#${output.value}`);
-  //   if (div !== null) {
-  //     div.remove();
-  //     div = null;
-  //   }
-  //   // prevent copying invalid color code
-  //   if (isValidHex(output.value)) {
-  //     generateToastMessage(`#${output.value} copied`);
-  //   } else {
-  //     alert("Invalid color code");
-  //   }
-  // });
+  colorModeHexInp.addEventListener("keyup", handleColorModeHexInp);
 
-  // copyBtn2.addEventListener("click", function () {
-  //   navigator.clipboard.writeText(output2.value);
-  //   if (div !== null) {
-  //     div.remove();
-  //     div = null;
-  //   }
-  //   generateToastMessage(`${output2.value} copied`);
-  // });
+  colorSliderRed.addEventListener(
+    "change",
+    handleColorSliders(colorSliderRed, colorSliderGreen, colorSliderBlue)
+  );
+  colorSliderGreen.addEventListener(
+    "change",
+    handleColorSliders(colorSliderRed, colorSliderGreen, colorSliderBlue)
+  );
+  colorSliderBlue.addEventListener(
+    "change",
+    handleColorSliders(colorSliderRed, colorSliderGreen, colorSliderBlue)
+  );
 
-  // // input field change handler
-  // output.addEventListener("keyup", function (e) {
-  //   const color = e.target.value;
-  //   if (color) {
-  //     output.value = color.toUpperCase();
-  //     if (isValidHex(color)) {
-  //       root.style.backgroundColor = `#${color}`;
-  //       output2.value = hexToRgb(color);
-  //     }
-  //   }
-  // });
+  copyToClipboardBtn.addEventListener("click", handleCopyToClipboardBtn);
 }
 
 // event handlers
 function handleGenerateRandomColorBtn() {
   const color = generateColorDecimal();
   updateColorCodeToDom(color);
+}
+
+function handleColorModeHexInp(e) {
+  const hexColor = e.target.value;
+  if (hexColor) {
+    this.value = hexColor.toUpperCase();
+    if (isValidHex(hexColor)) {
+      const color = hexToDecimalColors(hexColor);
+      updateColorCodeToDom(color);
+    }
+  }
+}
+
+function handleColorSliders(colorSliderRed, colorSliderGreen, colorSliderBlue) {
+  return function () {
+    const color = {
+      red: parseInt(colorSliderRed.value),
+      green: parseInt(colorSliderGreen.value),
+      blue: parseInt(colorSliderBlue.value),
+    };
+    updateColorCodeToDom(color);
+  };
+}
+
+function handleCopyToClipboardBtn() {
+  const colorModeRadios = document.getElementsByName("color-mode");
+  const mode = getCheckedValue(colorModeRadios);
+  if (mode === null) {
+    throw new Error("Invalid Radio Input");
+  }
+
+  if (toastContainer !== null) {
+    toastContainer.remove();
+    toastContainer = null;
+  }
+
+  if (mode === "hex") {
+    const hexColor = document.getElementById("input-hex").value;
+    if (hexColor && isValidHex(hexColor)) {
+      navigator.clipboard.writeText(`#${hexColor}`);
+      generateToastMessage(`#${hexColor} copied`);
+    } else {
+      alert("Invalid Hex Color");
+    }
+  } else {
+    const rgbColor = document.getElementById("input-rgb").value;
+    if (rgbColor) {
+      navigator.clipboard.writeText(rgbColor);
+      generateToastMessage(`${rgbColor} copied`);
+    } else {
+      alert("Invalid RGB Color");
+    }
+  }
 }
 
 // DOM functions
@@ -81,21 +120,36 @@ function handleGenerateRandomColorBtn() {
  * @param {string} msg
  */
 function generateToastMessage(msg) {
-  div = document.createElement("div");
-  div.innerText = msg;
-  div.className = "toast-message toast-message-slide-in";
+  toastContainer = document.createElement("div");
+  toastContainer.innerText = msg;
+  toastContainer.className = "toast-message toast-message-slide-in";
 
-  div.addEventListener("click", function () {
-    div.classList.remove("toast-message-slide-in");
-    div.classList.add("toast-message-slide-out");
+  toastContainer.addEventListener("click", function () {
+    toastContainer.classList.remove("toast-message-slide-in");
+    toastContainer.classList.add("toast-message-slide-out");
 
-    div.addEventListener("animationend", function () {
-      div.remove();
-      div = null;
+    toastContainer.addEventListener("animationend", function () {
+      toastContainer.remove();
+      toastContainer = null;
     });
   });
 
-  document.body.appendChild(div);
+  document.body.appendChild(toastContainer);
+}
+
+/**
+ * find the checked elements from a list of radio buttons
+ * @param {Array} nodes
+ */
+function getCheckedValue(nodes) {
+  let checkedValue = null;
+  for (let i = 0; i < nodes.length; i++) {
+    if (nodes[i].checked) {
+      checkedValue = nodes[i].value;
+      break;
+    }
+  }
+  return checkedValue;
 }
 
 /**
@@ -144,7 +198,7 @@ function generateHexColor({ red, green, blue }) {
     return hex.length === 1 ? `0${hex}` : hex;
   };
 
-  return `#${getTwoCode(red)}${getTwoCode(green)}${getTwoCode(
+  return `${getTwoCode(red)}${getTwoCode(green)}${getTwoCode(
     blue
   )}`.toUpperCase();
 }
